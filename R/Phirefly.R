@@ -1,0 +1,2 @@
+#' Phirefly
+"_PACKAGE"
