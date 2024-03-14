@@ -9,5 +9,5 @@
 #'
 #' @examples
 loglikelihood <- function(phy, chr.values, par){
-  return(0)
+  return(2)
 }

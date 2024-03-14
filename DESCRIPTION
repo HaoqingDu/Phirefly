@@ -2,8 +2,12 @@ Package: Phirefly
 Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+    c(
+    person("Haoqing", "Du", , "duhaoqing115@gmail.com", role = c("aut", "cre")),
+    person("Priscilla", "Lau", role = c("aut")),
+    person("Bjorn Tore", "Kopperud", role = c("aut")),
+    person("Sebastian", "Hoehna", role = c("aut"))
+    )       
 Description: What the package does (one paragraph).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
