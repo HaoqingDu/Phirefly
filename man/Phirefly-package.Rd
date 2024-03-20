@@ -6,7 +6,7 @@
 \alias{Phirefly-package}
 \title{Phirefly}
 \description{
-What the package does (one paragraph).
+Implements likelihood functions for univariate Brownian motion and Ornstein Uhlenbeck models in comparative phylogenetic methods
 }
 \author{
 \strong{Maintainer}: Haoqing Du \email{duhaoqing115@gmail.com}
