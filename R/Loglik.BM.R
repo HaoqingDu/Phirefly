@@ -1,5 +1,5 @@
 # Author: Haoqing Du
-# Latest Editing Time: 19/03/2024
+# Latest Editing Time: 20/03/2024
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
