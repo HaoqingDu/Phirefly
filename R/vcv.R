@@ -29,11 +29,8 @@ from.root <- function(phy, node) {
   if (node == length(phy$tip.label)+1) {
     return(0)
   } else{
-    return(phy$edge.length[phy$edge[,2]==node]+from.root(phy$edge[phy$edge[,2]==node,1]))
+    return(phy$edge.length[phy$edge[,2]==node]+from.root(phy, phy$edge[phy$edge[,2]==node,1]))
   }
-}
-for (i in 1:length(phy$tip.label)) {
-  phy$edge[phy$edge[,2]==i,1]
 }
 
 
@@ -64,10 +61,10 @@ vcv.BM <- function(phy) {
   for (n in 1:ncol(C)) {
     for (m in 1:n) {
       if (m!=n) {
-        C[m,n] <- from.root(common.ancestor(m,n))
+        C[m,n] <- from.root(phy, common.ancestor(phy, m, n))
         C[n,m] <- C[m,n]
       } else {
-        C[m,n] <- from.root(phy$edge[phy$edge[,2] == m,1]) + phy$edge.length[phy$edge[,2] == m]
+        C[m,n] <- from.root(phy, phy$edge[phy$edge[,2] == m, 1]) + phy$edge.length[phy$edge[,2] == m]
       }
     }
   }
@@ -84,7 +81,7 @@ vcv.OU <- function(phy, sigma2, adpt.rate) {
     for (m in 1:n) {
       C[m,n] <- sigma2/(2*adpt.rate)*
         exp(-adpt.rate*dist(phy, m, n))*
-        (1-exp(-2*adpt.rate*from.root(common.ancestor(m,n))))
+        (1-exp(-2*adpt.rate*from.root(phy, common.ancestor(m,n))))
       C[n,m] <- C[m,n]
     }
   }

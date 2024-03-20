@@ -1,9 +1,3 @@
-context("test that pruning and vcv give same likelihood")
-
-test_that("1 + 1 = 2", {
-  expect_equal(1 + 1, 2)
-})
-
 ####################################
 ##
 ##  the pruning likelihood
@@ -24,7 +18,7 @@ pruning_likelihood <- logl_BM_fitzjohn(artiodactyla, sigma2, mu, "brain_mass_g_l
 ####################################
 
 ## vcv_likelihood <- vcv.loglik(artiodactyla, sigma2, mu, trait_name)
-vcv_likelihood <- -20
+vcv_likelihood <- Loglik.BM(artiodactyla@phylo, artiodactyla@data$brain_mass_g_log_mean[1:43] , mu, sigma2)
 
 ####################################
 ##
