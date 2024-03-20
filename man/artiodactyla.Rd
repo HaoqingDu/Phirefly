@@ -13,6 +13,15 @@ data(artiodactyla)
 \description{
 A phylogenetic tree and morphological data on artiodactyls (even-toed ungulates). Includes mean neocortex area (mm^2), mean brain size (g) and mean body size (g) for 43 species, including estimates of within-species observational error. These standard errors are not based directly on the unbiased sample variance estimator. The sample variances were first calculated, then a "global sample variance" was estimated using a weighted average. Lastly, the global sample variance was divided by the respective within-species sample size for each species to obtain the squared standard error as reported in the dataset.
 }
+\examples{
+library(tidytree)
+library(ape)
+data(artiodactyla)
+
+plot(artiodactyla)
+plot(artiodactyla@data$brain_mass_g_log_mean, artiodactyla@dataneocortex_area_mm2_log_mean)
+
+}
 \references{
 The following literature includes details on the original data collection.
 

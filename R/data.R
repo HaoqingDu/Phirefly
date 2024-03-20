@@ -38,7 +38,7 @@
 #'
 #' }
 #'
-#' @example
+#' @examples
 #' library(tidytree)
 #' library(ape)
 #' data(artiodactyla)
