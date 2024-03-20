@@ -1,9 +1,9 @@
 # Author: Haoqing Du
-# Latest Editing Time: 15/03/2024
+# Latest Editing Time: 19/03/2024
 
 ## Most recent common ancestor of two taxa
 
-common.ancestor <- function(phy, tip1, tip2){
+common.ancestor <- function(phy, tip1, tip2) {
   if (sum(phy$edge[,2]==tip1) == 0 | sum(phy$edge[,2]==tip2) == 0) {
     stop(tip1, "\ or\ ", tip2, ": not a valid tip label in this phylo")
     }
@@ -25,7 +25,7 @@ common.ancestor <- function(phy, tip1, tip2){
 ## If the node is the mrca of two taxa, the result is their shared branch length
 
 
-from.root <- function(phy, node){
+from.root <- function(phy, node) {
   if (node == length(phy$tip.label)+1) {
     return(0)
   } else{
@@ -39,7 +39,7 @@ for (i in 1:length(phy$tip.label)) {
 
 ## The distance between two taxa
 
-dist <- function(phy, taxa1, taxa2){
+dist <- function(phy, taxa1, taxa2) {
   mrca <- common.ancestor(phy, taxa1, taxa2)
 
   edgelength <- function(phy, tip, node) {
@@ -51,14 +51,14 @@ dist <- function(phy, taxa1, taxa2){
     }
   }
 
-  print(edgelength(phy, taxa1, mrca) + edgelength(phy, taxa2, mrca))
+  return(edgelength(phy, taxa1, mrca) + edgelength(phy, taxa2, mrca))
 }
 
 
 ## Variance-Covariance matrix for a phylogeny
 ## Model: Brownian Motion
 
-vcv.BM <- function(phy){
+vcv.BM <- function(phy) {
   if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
   C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
   for (n in 1:ncol(C)) {
@@ -77,7 +77,7 @@ vcv.BM <- function(phy){
 
 ## vcv matrix for Ornstein-Uhlenbeck process
 
-vcv.OU <- function(phy, sigma2, adpt.rate){
+vcv.OU <- function(phy, sigma2, adpt.rate) {
   if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
   C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
   for (n in 1:ncol(C)) {

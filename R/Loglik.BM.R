@@ -13,7 +13,7 @@ anc.values <- function(phy, chr.values) {
   C <- vcv.BM(phy)
   v1 <- rep(1, ncol(C))
   a <- solve(t(v1) %*% solve(C) %*% v1) %*% (t(v1) %*% solve(C) %*% chr.values)
-  print(a)
+  return(a)
 }
 
 
@@ -26,7 +26,7 @@ Loglik.BM <- function(phy, chr.values, anc.values, sig2) {
   likelihood <- exp(-1/2 * t(chr.values-anc.values %x% v1) %*%
                       solve(sig2*C) %*%
                       (chr.values-anc.values %x% v1)) / sqrt((2*pi)^ncol(C) * det(sig2*C))
-  print(log(likelihood))
+  return(log(likelihood))
 }
 
 
@@ -38,7 +38,7 @@ sigma2.BM <- function(phy, chr.values, anc.values) {
   v1 <- matrix(rep(1, ncol(C)), ncol = 1)
   sig2.hat <- t(chr.values-anc.values %x% v1) %*% solve(C) %*%
     (chr.values-anc.values %x% v1)/ncol(C)
-  print(sig2.hat)
+  return(sig2.hat)
 }
 
 
@@ -50,7 +50,7 @@ ML.BM <- function(phy, chr.values) {
 
   ML <- Loglik.BM(phy, chr.values, z_0, sigma2.hat)
 
-  print(ML)
+  return(ML)
 }
 
 
