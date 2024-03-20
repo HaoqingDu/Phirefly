@@ -5,4 +5,4 @@
 ## - with the Brownian Motion model
 ## - under the situation that (i) single trait; (ii) single sample per taxa.
 
-Loglik.BM <- function(phy, )
+# Loglik.BM <- function(phy)
