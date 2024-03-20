@@ -4,12 +4,14 @@
 \alias{generalized_least_squares}
 \title{Generalized least squares}
 \usage{
-generalized_least_squares(V, X)
+generalized_least_squares(V, X, y, beta1)
 }
 \arguments{
 \item{V}{residual among-species covariance matrix}
 
 \item{X}{model matrix}
+
+\item{y}{the parameter vector}
 }
 \value{
 the log likelihood value
@@ -21,6 +23,8 @@ Generalized least squares
 
 V <- crossprod(matrix(rnorm(16),4,4))
 X <- matrix(1,4,1)
+y <- c(0.1, 0.3, -0.3, 0.0)
+beta1 <- 0.2
 
-generalized_least_squares(V, X)
+generalized_least_squares(V, X, y, beta1)
 }
