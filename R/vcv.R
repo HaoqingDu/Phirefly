@@ -1,5 +1,5 @@
 # Author: Haoqing Du
-# Latest Editing Time: 20/03/2024
+# Latest Editing Time: 21/03/2024
 
 ## Most recent common ancestor of two taxa
 
@@ -55,16 +55,17 @@ dist <- function(phy, taxa1, taxa2) {
 ## Variance-Covariance matrix for a phylogeny
 ## Model: Brownian Motion
 
-vcv.BM <- function(phy) {
-  if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
-  C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
+vcv.BM <- function(td) {
+  if(class(td@phylo) != "phylo") stop(td," does not have a \" phylo \".")
+  C <- matrix(NA, nrow = length(td@phylo$tip.label), ncol = length(td@phylo$tip.label))
   for (n in 1:ncol(C)) {
     for (m in 1:n) {
       if (m!=n) {
-        C[m,n] <- from.root(phy, common.ancestor(phy, m, n))
+        C[m,n] <- from.root(td@phylo, common.ancestor(phy, m, n))
         C[n,m] <- C[m,n]
       } else {
-        C[m,n] <- from.root(phy, phy$edge[phy$edge[,2] == m, 1]) + phy$edge.length[phy$edge[,2] == m]
+        C[m,n] <- from.root(td@phylo, td@phylo$edge[td@phylo$edge[,2] == m, 1]) +
+          td@phylo$edge.length[td@phylo$edge[,2] == m]
       }
     }
   }
@@ -74,16 +75,68 @@ vcv.BM <- function(phy) {
 
 ## vcv matrix for Ornstein-Uhlenbeck process
 
-vcv.OU <- function(phy, sigma2, adpt.rate) {
-  if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
-  C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
+vcv.OU <- function(td, alpha) {
+  if(class(td@phylo) != "phylo") stop(td," does not have a \" phylo \".")
+  C <- matrix(NA, nrow = length(td@phylo$tip.label), ncol = length(td@phylo$tip.label))
   for (n in 1:ncol(C)) {
     for (m in 1:n) {
-      C[m,n] <- sigma2/(2*adpt.rate)*
-        exp(-adpt.rate*dist(phy, m, n))*
-        (1-exp(-2*adpt.rate*from.root(phy, common.ancestor(m,n))))
+      # Cov[i, j] = sigma2/2alpha*exp(-alpha*tij)*[1-exp(-2alpha*tra)]
+      C[m,n] <- 1/(2*alpha)*
+        exp(-alpha*dist(td@phylo, m, n))*
+        (1-exp(-2*alpha*from.root(td@phylo, common.ancestor(td@phylo, m, n))))
       C[n,m] <- C[m,n]
     }
   }
   return(C)
 }
+
+
+## merge two functions into one vcv.matrix function
+
+vcv.matrix <- function(td,
+                       model = c("BM", "OU"),
+                       alpha = NULL) {
+
+  if(class(td@phylo) != "phylo") stop(td," does not have a \" phylo \".")
+
+  ntaxa <- length(td@phylo$tip.label)
+  C <- matrix(NA, nrow = ntaxa, ncol = ntaxa)
+
+  if(is.null(model)) {
+    warning("Please specify the model!")
+    print("The given result is under the BM model")
+  }
+
+  else if(model = "OU") {
+    # alpha is required under OU process
+    if(!is.null(alpha)) {
+      for (n in 1:ntaxa) {
+        for (m in 1:m) {
+          # C[i,j] = C[j,i] = 1/(2alpha)*exp[-alpha*t_ij]*[1-exp[-2alpha*t_ra]]
+          # t_ij = distance between i & j, t_ra = distance between root and mrca
+          C[m,n] <- 1/(2*alpha)*
+            exp(-alpha*dist(td@phylo, m, n))*
+            (1-exp(-2*alpha*from.root(td@phylo, common.ancestor(td@phylo, m, n))))
+          C[n,m] <- C[m,n]
+        }
+      }
+    } else {
+      warning("alpha is required for the OU model!")
+      # when alpha is missing under the OU model, the function switch to BM automatically
+      print("The given result is under the BM model")
+      vcv.matrix(td,
+                 model = "BM")
+    }
+  }
+
+  else if(model = "BM") {
+    for (n in 1:ncol(C)) {
+      for (m in 1:n) {
+        C[m,n] <- from.root(td@phylo, common.ancestor(phy, m, n))
+        C[n,m] <- C[m,n]
+      }
+    }
+  }
+}
+
+
