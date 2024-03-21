@@ -105,6 +105,7 @@ vcv.matrix <- function(td,
   if(length(model) > 1) {
     warning("Please specify the model!")
     print("The given result is under the BM model")
+    model <- "BM"
   }
 
   if(model == "OU") {
