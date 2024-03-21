@@ -102,12 +102,12 @@ vcv.matrix <- function(td,
   ntaxa <- length(td@phylo$tip.label)
   C <- matrix(NA, nrow = ntaxa, ncol = ntaxa)
 
-  if(is.null(model)) {
+  if(length(model) > 1) {
     warning("Please specify the model!")
     print("The given result is under the BM model")
   }
 
-  else if(model = "OU") {
+  if(model == "OU") {
     # alpha is required under OU process
     if(!is.null(alpha)) {
       for (n in 1:ntaxa) {
@@ -123,13 +123,14 @@ vcv.matrix <- function(td,
     } else {
       warning("alpha is required for the OU model!")
       # when alpha is missing under the OU model, the function switch to BM automatically
-      print("The given result is under the BM model")
+      print("The given result is under the BM model.")
       vcv.matrix(td,
                  model = "BM")
     }
   }
 
-  else if(model = "BM") {
+  else {
+    # when model is not specified, use BM.
     for (n in 1:ncol(C)) {
       for (m in 1:n) {
         C[m,n] <- from.root(td@phylo, common.ancestor(phy, m, n))
