@@ -134,7 +134,7 @@ vcv.matrix <- function(td,
     # when model is not specified, use BM.
     for (n in 1:ncol(C)) {
       for (m in 1:n) {
-        C[m,n] <- from.root(td@phylo, common.ancestor(phy, m, n))
+        C[m,n] <- from.root(td@phylo, common.ancestor(td@phylo, m, n))
         C[n,m] <- C[m,n]
       }
     }
