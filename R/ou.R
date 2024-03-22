@@ -1,7 +1,3 @@
-library(ape)
-library(phytools)
-library(pracma)
-
 # Pruning algorithm
 
 # Postorder function
