@@ -22,18 +22,18 @@ logl_BM_vcv <- function(td, mu, sigma2, trait_name) {
   ntip <- length(phy$tip.label)
   chr.values <- td@data[[trait_name]][1:ntip]
 
-  C <- BM_vcv(phy)
-  v1 <- matrix(rep(1, ncol(C)), ncol = 1)
-  likelihood <- exp(-1/2 * t(chr.values - mu %x% v1) %*%
-                      solve(sigma2*C) %*%
-                      (chr.values-mu %x% v1)) / sqrt((2*pi)^ncol(C) * det(sigma2*C))
-  return(as.numeric(log(likelihood)))
+  V <- BM_vcv(phy, sigma2)
+  X <- matrix(1, ntip, 1)
+  beta1 <- matrix(mu, 1,1)
+
+  logl <- generalized_least_squares(V, X, chr.values, beta1)
+  return(logl)
 }
 
 ## Variance-Covariance matrix for a phylogeny
 ## Model: Brownian Motion
 
-BM_vcv <- function(phy) {
+BM_vcv <- function(phy, sigma2) {
   if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
   C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
   for (n in 1:ncol(C)) {
@@ -46,6 +46,7 @@ BM_vcv <- function(phy) {
       }
     }
   }
+  C <- C * sigma2
   return(C)
 }
 
