@@ -15,12 +15,9 @@ extractContinuousChar <- function(phy, metadata, col_taxon, cols_contChars){
     select(col_taxon, all_of(cols_contChars)) %>%
     filter()
 
-
   rownames(contChars) <- data[[col_taxon]]
 
-
-
-  return(c(match_tree, match_contChars)
+  return(c(match_tree, match_contChars))
 }
 
 
