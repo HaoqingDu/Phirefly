@@ -11,6 +11,8 @@ logl_BM_fitzjohn(td, sigma2, mu, trait_name)
 
 \item{sigma2}{the instantaneous diffusion variance parameter}
 
+\item{mu}{the parameter controlling the mean, or the ancestral value of the BM process}
+
 \item{trait_name}{a string indicating which column in \code{td} that should be used for the trait}
 }
 \value{

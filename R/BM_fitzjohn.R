@@ -2,6 +2,7 @@
 #'
 #' @inherit logl_OU_fitzjohn
 #'
+#' @param mu the parameter controlling the mean, or the ancestral value of the BM process
 #' @export
 #'
 #' @examples

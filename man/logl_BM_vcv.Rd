@@ -9,6 +9,8 @@ logl_BM_vcv(td, mu, sigma2, trait_name)
 \arguments{
 \item{td}{an object of class "treedata", from the tidytree package. This contains both the tree and the continuous traits}
 
+\item{mu}{the parameter controlling the mean, or the ancestral value of the BM process}
+
 \item{sigma2}{the instantaneous diffusion variance parameter}
 
 \item{trait_name}{a string indicating which column in \code{td} that should be used for the trait}

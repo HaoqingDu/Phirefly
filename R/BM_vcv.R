@@ -11,6 +11,7 @@
 #' Calculate the likelihood of a univariate BM process using the vcv method
 #'
 #' @inherit logl_OU_fitzjohn
+#' @inherit logl_BM_fitzjohn
 #'
 #' @export
 #'
