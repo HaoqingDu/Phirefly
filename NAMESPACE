@@ -2,7 +2,7 @@
 
 export(generalized_least_squares)
 export(logl_BM_fitzjohn)
+export(logl_BM_vcv)
 export(logl_OU_fitzjohn)
 export(logl_OU_vcv)
-export(loglik.BM)
 export(make_descendants)

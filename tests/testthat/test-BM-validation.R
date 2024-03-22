@@ -17,8 +17,7 @@ pruning_likelihood <- logl_BM_fitzjohn(artiodactyla, sigma2, mu, "brain_mass_g_l
 ##
 ####################################
 
-## vcv_likelihood <- vcv.loglik(artiodactyla, sigma2, mu, trait_name)
-vcv_likelihood <- loglik.BM(artiodactyla@phylo, artiodactyla@data$brain_mass_g_log_mean[1:43] , mu, sigma2)
+vcv_likelihood <- logl_BM_vcv(artiodactyla, mu, sigma2, "brain_mass_g_log_mean")
 
 ####################################
 ##

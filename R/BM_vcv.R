@@ -12,26 +12,30 @@
 #'
 #' @param phy
 #' @param chr.values
-#' @param anc.values
-#' @param sig2
+#' @param mu
+#' @param sigma2
 #'
 #' @return
 #' @export
 #'
 #' @examples
-loglik.BM <- function(phy, chr.values, anc.values, sig2) {
-  C <- vcv.BM(phy)
+logl_BM_vcv <- function(td, mu, sigma2, trait_name) {
+  phy <- td@phylo
+  ntip <- length(phy$tip.label)
+  chr.values <- td@data[[trait_name]][1:ntip]
+
+  C <- BM_vcv(phy)
   v1 <- matrix(rep(1, ncol(C)), ncol = 1)
-  likelihood <- exp(-1/2 * t(chr.values-anc.values %x% v1) %*%
-                      solve(sig2*C) %*%
-                      (chr.values-anc.values %x% v1)) / sqrt((2*pi)^ncol(C) * det(sig2*C))
+  likelihood <- exp(-1/2 * t(chr.values - mu %x% v1) %*%
+                      solve(sigma2*C) %*%
+                      (chr.values-mu %x% v1)) / sqrt((2*pi)^ncol(C) * det(sigma2*C))
   return(as.numeric(log(likelihood)))
 }
 
 ## Variance-Covariance matrix for a phylogeny
 ## Model: Brownian Motion
 
-vcv.BM <- function(phy) {
+BM_vcv <- function(phy) {
   if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
   C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
   for (n in 1:ncol(C)) {
