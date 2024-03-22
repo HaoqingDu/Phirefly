@@ -1,7 +1,7 @@
 # Pruning algorithm
 
 # Postorder function
-postorder <- function(node_index, edge, tree, continuousChar,
+postorder <- function(node_index, edge, tree, continuous_trait,
                       mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
   ntip = length(tree$tip.label)
 
@@ -13,13 +13,13 @@ postorder <- function(node_index, edge, tree, continuousChar,
     left = edge[left_edge,2] # index of left child node
     right = edge[right_edge,2] # index of right child node
 
-    output_left <- postorder(left, edge, tree, continuousChar,
+    output_left <- postorder(left, edge, tree, continuous_trait,
                              mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
     mu <- output_left[[1]]
     V <- output_left[[2]]
     log_norm_factor <- output_left[[3]]
 
-    output_right <- postorder(right, edge, tree, continuousChar,
+    output_right <- postorder(right, edge, tree, continuous_trait,
                               mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
     mu <- output_right[[1]]
     V <- output_right[[2]]
@@ -66,7 +66,7 @@ postorder <- function(node_index, edge, tree, continuousChar,
   else{
     species = tree$tip.label[node_index]
 
-    mu[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
+    mu[node_index] = as.numeric(continuous_trait[[which(names(continuous_trait) == species)]])
     V[node_index] = 0.0 ## if there is no observation error
 
     return(list(mu, V, log_norm_factor))
@@ -74,7 +74,11 @@ postorder <- function(node_index, edge, tree, continuousChar,
 }
 
 ## log-likelihood + root treatment
-simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
+logl_OU_fitzjohn <- function(td, alpha, sigma2, theta, trait_name){
+  tree <- td@phylo
+  continuous_trait <- td@data[[trait_name]]
+  names(continuous_trait) <- tree$tip.label
+
   ntip = length(tree$tip.label) # number of tips
   edge = tree$edge # equals tree[:edge] in Julia
   n_edges = length(edge[,1]) # number of edges
@@ -88,7 +92,7 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
 
   root_index = ntip + 1
 
-  output <- postorder(root_index, edge, tree, continuousChar,
+  output <- postorder(root_index, edge, tree, continuous_trait,
                       mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
   mu <- output[[1]]
   V <- output[[2]]
@@ -108,17 +112,17 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
 
 
 # multiple continuous characters
-# continuousChar. alpha, sigma2, and theta should be vectors of same length
-#multiChar.ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
+# continuous_trait. alpha, sigma2, and theta should be vectors of same length
+#multiChar.ou_pruning <- function(tree, continuous_trait, alpha, sigma2, theta){
 #  sum_likelihood = 0
-#  for (i in 1:length(continuousChar)){
-#    sum_likelihood = sum_likelihood + simple_ou_pruning(tree, continuousChar[i], alpha[i], sigma2[i], theta[i])
+#  for (i in 1:length(continuous_trait)){
+#    sum_likelihood = sum_likelihood + simple_ou_pruning(tree, continuous_trait[i], alpha[i], sigma2[i], theta[i])
 #  }
 #  return(sum_likelihood)
 #}
 
 
-#multiSample.postorder <- function(node_index, edge, tree, continuousChar,
+#multiSample.postorder <- function(node_index, edge, tree, continuous_trait,
 #                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
 #  ntip = length(tree$tip.label)
 #
@@ -130,13 +134,13 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
 #    left = edge[left_edge,2] # index of left child node
 #    right = edge[right_edge,2] # index of right child node
 #
-#    output_left <- postorder(left, edge, tree, continuousChar,
+#    output_left <- postorder(left, edge, tree, continuous_trait,
 #                             mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
 #    mu <- output_left[[1]]
 #    V <- output_left[[2]]
 #    log_norm_factor <- output_left[[3]]
 #
-#    output_right <- postorder(right, edge, tree, continuousChar,
+#    output_right <- postorder(right, edge, tree, continuous_trait,
 #                              mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
 #    mu <- output_right[[1]]
 #    V <- output_right[[2]]
@@ -184,7 +188,7 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
 #  else{
 #    species = tree$tip.label[node_index]
 #
-#    mu[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
+#    mu[node_index] = as.numeric(continuous_trait[[which(names(continuous_trait) == species)]])
 #    V[node_index] = 0.0 ## if there is no observation error
 #
 #    return(list(mu, V, log_norm_factor))

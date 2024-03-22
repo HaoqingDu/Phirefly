@@ -14,9 +14,24 @@ vcv.OU <- function(phy, sigma2, adpt.rate) {
   return(C)
 }
 
+#' Title
+#'
+#' @param td
+#' @param sigma2
+#' @param trait_name
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#'
+#' data("artiodactyla")
+#'
+#' logl_OU_vcv(artiodactyla, 0.1, 0.3, 5.0, "brain_mass_g_log_mean")
+logl_OU_vcv <- function(td, alpha, sigma2, theta, trait_name){
+  continuous_trait <- td@data[[trait_name]]
+  tree <- td@phylo
 
-# Generalised least square method (aka variance-covariance matrix method)
-simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
   ntip <- length(tree$tip.label)
   mrca1 <- ape::mrca(tree) # get the ancestral node label for each pair of tips
   times <- ape::node.depth.edgelength(tree) # get time at each node from root
@@ -35,7 +50,7 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 
   beta1 <- matrix(theta, 1,1)
 
-  logl <- generalized_least_squares(V, X, continuousChar, beta1)
+  logl <- generalized_least_squares(V, X, continuous_trait, beta1)
 
   return(logl)
 }
