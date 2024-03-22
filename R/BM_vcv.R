@@ -39,7 +39,6 @@ vcv.BM <- function(phy) {
 #' @export
 #'
 #' @examples
-
 loglik.BM <- function(phy, chr.values, anc.values, sig2) {
   C <- vcv.BM(phy)
   v1 <- matrix(rep(1, ncol(C)), ncol = 1)
