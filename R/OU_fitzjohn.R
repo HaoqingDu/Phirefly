@@ -2,7 +2,7 @@
 
 # Postorder function
 postorder <- function(node_index, edge, tree, continuousChar,
-                      μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
+                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
   ntip = length(tree$tip.label)
 
   # if is internal node
@@ -14,14 +14,14 @@ postorder <- function(node_index, edge, tree, continuousChar,
     right = edge[right_edge,2] # index of right child node
 
     output_left <- postorder(left, edge, tree, continuousChar,
-                             μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-    μ <- output_left[[1]]
+                             mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+    mu <- output_left[[1]]
     V <- output_left[[2]]
     log_norm_factor <- output_left[[3]]
 
     output_right <- postorder(right, edge, tree, continuousChar,
-                              μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-    μ <- output_right[[1]]
+                              mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+    mu <- output_right[[1]]
     V <- output_right[[2]]
     log_norm_factor <- output_right[[3]]
 
@@ -38,12 +38,12 @@ postorder <- function(node_index, edge, tree, continuousChar,
     var_right = v_right + V[right] * exp(2.0 * alpha * bl_right)
 
     # 2) mean of the normal variable
-    mean_left = exp(alpha*bl_left)*(μ[left] - theta) + theta
-    mean_right = exp(alpha*bl_right)*(μ[right] - theta) + theta
+    mean_left = exp(alpha*bl_left)*(mu[left] - theta) + theta
+    mean_right = exp(alpha*bl_right)*(mu[right] - theta) + theta
 
     ## compute the mean and variance of the node
     mean_ancestor = (mean_left * var_right + mean_right * var_left) / (var_left + var_right)
-    μ[node_index] = mean_ancestor
+    mu[node_index] = mean_ancestor
     var_node = (var_left * var_right) / (var_left + var_right)
     V[node_index] = var_node
 
@@ -54,12 +54,11 @@ postorder <- function(node_index, edge, tree, continuousChar,
     contrast = mean_left - mean_right
     a = -(contrast*contrast / (2*(var_left+var_right)))
     b = log(2*pi*(var_left+var_right))/2.0
-    #b = log(2*pi)/2.0 + log(var_left+var_right)/2.0
     log_nf = log_nf_left + log_nf_right + a - b
     log_norm_factor[node_index] = log_nf
 
 
-    return(list(μ, V, log_norm_factor))
+    return(list(mu, V, log_norm_factor))
   }
 
 
@@ -67,10 +66,10 @@ postorder <- function(node_index, edge, tree, continuousChar,
   else{
     species = tree$tip.label[node_index]
 
-    μ[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
+    mu[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
     V[node_index] = 0.0 ## if there is no observation error
 
-    return(list(μ, V, log_norm_factor))
+    return(list(mu, V, log_norm_factor))
   }
 }
 
@@ -82,7 +81,7 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
   max_node_index = max(tree$edge) # total number of nodes
 
   V = numeric(max_node_index)
-  μ = numeric(max_node_index)
+  mu = numeric(max_node_index)
   log_norm_factor = numeric(max_node_index)
 
   branch_lengths = tree$edge.length
@@ -90,15 +89,15 @@ simple_ou_pruning <- function(tree, continuousChar, alpha, sigma2, theta){
   root_index = ntip + 1
 
   output <- postorder(root_index, edge, tree, continuousChar,
-                      μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-  μ <- output[[1]]
+                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+  mu <- output[[1]]
   V <- output[[2]]
   log_norm_factor <- output[[3]]
 
   ## assume root value equal to theta
-  μ_root = μ[root_index]
+  mu_root = mu[root_index]
   v_root = V[root_index]
-  lnl = dnorm(theta, mean = μ_root, sd = sqrt(v_root), log = TRUE) # are \theta and \mu in correct positions?
+  lnl = dnorm(theta, mean = mu_root, sd = sqrt(v_root), log = TRUE) # are \theta and \mu in correct positions?
 
   ## add norm factor
   for (log_nf in log_norm_factor){
@@ -163,7 +162,7 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 
 
 #multiSample.postorder <- function(node_index, edge, tree, continuousChar,
-#                      μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
+#                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
 #  ntip = length(tree$tip.label)
 #
 #  # if is internal node
@@ -175,14 +174,14 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 #    right = edge[right_edge,2] # index of right child node
 #
 #    output_left <- postorder(left, edge, tree, continuousChar,
-#                             μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-#    μ <- output_left[[1]]
+#                             mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+#    mu <- output_left[[1]]
 #    V <- output_left[[2]]
 #    log_norm_factor <- output_left[[3]]
 #
 #    output_right <- postorder(right, edge, tree, continuousChar,
-#                              μ, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-#    μ <- output_right[[1]]
+#                              mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+#    mu <- output_right[[1]]
 #    V <- output_right[[2]]
 #    log_norm_factor <- output_right[[3]]
 #
@@ -199,12 +198,12 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 #    var_right = v_right + V[right] * exp(2.0 * alpha * bl_right)
 #
 #    # 2) mean of the normal variable
-#    mean_left = exp(alpha*bl_left)*(μ[left] - theta) + theta
-#    mean_right = exp(alpha*bl_right)*(μ[right] - theta) + theta
+#    mean_left = exp(alpha*bl_left)*(mu[left] - theta) + theta
+#    mean_right = exp(alpha*bl_right)*(mu[right] - theta) + theta
 #
 #    ## compute the mean and variance of the node
 #    mean_ancestor = (mean_left * var_right + mean_right * var_left) / (var_left + var_right)
-#    μ[node_index] = mean_ancestor
+#    mu[node_index] = mean_ancestor
 #    var_node = (var_left * var_right) / (var_left + var_right)
 #    V[node_index] = var_node
 #
@@ -220,7 +219,7 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 #    log_norm_factor[node_index] = log_nf
 #
 #
-#    return(list(μ, V, log_norm_factor))
+#    return(list(mu, V, log_norm_factor))
 #  }
 #
 #
@@ -228,10 +227,10 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 #  else{
 #    species = tree$tip.label[node_index]
 #
-#    μ[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
+#    mu[node_index] = as.numeric(continuousChar[[which(names(continuousChar) == species)]])
 #    V[node_index] = 0.0 ## if there is no observation error
 #
-#    return(list(μ, V, log_norm_factor))
+#    return(list(mu, V, log_norm_factor))
 #  }
 #}
 #multiSample.ou_pruning <-
