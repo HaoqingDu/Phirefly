@@ -1,5 +1,43 @@
-# Pruning algorithm
 
+
+## log-likelihood + root treatment
+logl_OU_fitzjohn <- function(td, alpha, sigma2, theta, trait_name){
+  tree <- td@phylo
+  continuous_trait <- td@data[[trait_name]]
+  names(continuous_trait) <- tree$tip.label
+
+  ntip = length(tree$tip.label) # number of tips
+  edge = tree$edge # equals tree[:edge] in Julia
+  n_edges = length(edge[,1]) # number of edges
+  max_node_index = max(tree$edge) # total number of nodes
+
+  V = numeric(max_node_index)
+  mu = numeric(max_node_index)
+  log_norm_factor = numeric(max_node_index)
+
+  branch_lengths = tree$edge.length
+
+  root_index = ntip + 1
+
+  output <- postorder(root_index, edge, tree, continuous_trait,
+                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
+  mu <- output[[1]]
+  V <- output[[2]]
+  log_norm_factor <- output[[3]]
+
+  ## assume root value equal to theta
+  mu_root = mu[root_index]
+  v_root = V[root_index]
+  lnl = dnorm(theta, mean = mu_root, sd = sqrt(v_root), log = TRUE) # are \theta and \mu in correct positions?
+
+  ## add norm factor
+  for (log_nf in log_norm_factor){
+    lnl = lnl + log_nf
+  }
+  return(lnl)
+}
+
+# Pruning algorithm
 # Postorder function
 postorder <- function(node_index, edge, tree, continuous_trait,
                       mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta){
@@ -73,42 +111,7 @@ postorder <- function(node_index, edge, tree, continuous_trait,
   }
 }
 
-## log-likelihood + root treatment
-logl_OU_fitzjohn <- function(td, alpha, sigma2, theta, trait_name){
-  tree <- td@phylo
-  continuous_trait <- td@data[[trait_name]]
-  names(continuous_trait) <- tree$tip.label
 
-  ntip = length(tree$tip.label) # number of tips
-  edge = tree$edge # equals tree[:edge] in Julia
-  n_edges = length(edge[,1]) # number of edges
-  max_node_index = max(tree$edge) # total number of nodes
-
-  V = numeric(max_node_index)
-  mu = numeric(max_node_index)
-  log_norm_factor = numeric(max_node_index)
-
-  branch_lengths = tree$edge.length
-
-  root_index = ntip + 1
-
-  output <- postorder(root_index, edge, tree, continuous_trait,
-                      mu, V, log_norm_factor, branch_lengths, alpha, sigma2, theta)
-  mu <- output[[1]]
-  V <- output[[2]]
-  log_norm_factor <- output[[3]]
-
-  ## assume root value equal to theta
-  mu_root = mu[root_index]
-  v_root = V[root_index]
-  lnl = dnorm(theta, mean = mu_root, sd = sqrt(v_root), log = TRUE) # are \theta and \mu in correct positions?
-
-  ## add norm factor
-  for (log_nf in log_norm_factor){
-    lnl = lnl + log_nf
-  }
-  return(lnl)
-}
 
 
 # multiple continuous characters
