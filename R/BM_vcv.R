@@ -35,19 +35,19 @@ logl_BM_vcv <- function(td, mu, sigma2, trait_name) {
 
 BM_vcv <- function(phy, sigma2) {
   if(class(phy) != "phylo") stop(phy," is not a \" phylo \".")
-  C <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
-  for (n in 1:ncol(C)) {
+  V <- matrix(NA, nrow = length(phy$tip.label), ncol = length(phy$tip.label))
+  for (n in 1:ncol(V)) {
     for (m in 1:n) {
       if (m!=n) {
-        C[m,n] <- from.root(phy, common.ancestor(phy, m, n))
-        C[n,m] <- C[m,n]
+        V[m,n] <- from.root(phy, common.ancestor(phy, m, n))
+        V[n,m] <- V[m,n]
       } else {
-        C[m,n] <- from.root(phy, phy$edge[phy$edge[,2] == m, 1]) + phy$edge.length[phy$edge[,2] == m]
+        V[m,n] <- from.root(phy, phy$edge[phy$edge[,2] == m, 1]) + phy$edge.length[phy$edge[,2] == m]
       }
     }
   }
-  C <- C * sigma2
-  return(C)
+  V <- V * sigma2
+  return(V)
 }
 
 
