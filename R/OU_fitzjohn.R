@@ -1,6 +1,15 @@
-
-
-## log-likelihood + root treatment
+#' Title
+#'
+#' @param td
+#' @param alpha
+#' @param sigma2
+#' @param theta
+#' @param trait_name
+#'
+#' @return the log likelihood
+#' @export
+#'
+#' @examples
 logl_OU_fitzjohn <- function(td, alpha, sigma2, theta, trait_name){
   tree <- td@phylo
   continuous_trait <- td@data[[trait_name]]
