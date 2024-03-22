@@ -2,15 +2,22 @@
 % Please edit documentation in R/BM_fitzjohn.R
 \name{logl_BM_fitzjohn}
 \alias{logl_BM_fitzjohn}
-\title{Title}
+\title{Calculate the likelihood of a univariate BM process using the FitzJohn algorithm}
 \usage{
 logl_BM_fitzjohn(td, sigma2, mu, trait_name)
 }
 \arguments{
-\item{trait_name}{}
+\item{td}{an object of class "treedata", from the tidytree package. This contains both the tree and the continuous traits}
+
+\item{sigma2}{the instantaneous diffusion variance parameter}
+
+\item{trait_name}{a string indicating which column in \code{td} that should be used for the trait}
+}
+\value{
+the log likelihood
 }
 \description{
-Title
+Calculate the likelihood of a univariate BM process using the FitzJohn algorithm
 }
 \examples{
 

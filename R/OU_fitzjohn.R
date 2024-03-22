@@ -1,15 +1,17 @@
-#' Title
+#' Calculate the log likelihood of an univariate OU model using the FitzJohn algorithm
 #'
-#' @param td
-#' @param alpha
-#' @param sigma2
-#' @param theta
-#' @param trait_name
+#' @param td an object of class "treedata", from the tidytree package. This contains both the tree and the continuous traits
+#' @param alpha the parameter controlling the rate of adaptation
+#' @param sigma2 the instantaneous diffusion variance parameter
+#' @param theta the primary optimum
+#' @param trait_name a string indicating which column in `td` that should be used for the trait
 #'
 #' @return the log likelihood
 #' @export
 #'
 #' @examples
+#' data("artiodactyla")
+#' logl_OU_fitzjohn(artiodactyla, 0.5, 0.5, 5.04, "brain_mass_g_log_mean")
 logl_OU_fitzjohn <- function(td, alpha, sigma2, theta, trait_name){
   tree <- td@phylo
   continuous_trait <- td@data[[trait_name]]

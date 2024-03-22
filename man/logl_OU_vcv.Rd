@@ -2,15 +2,26 @@
 % Please edit documentation in R/OU_vcv.R
 \name{logl_OU_vcv}
 \alias{logl_OU_vcv}
-\title{Title}
+\title{Calculate the likelihood of an univariate OU process using the vcv method}
 \usage{
 logl_OU_vcv(td, alpha, sigma2, theta, trait_name)
 }
 \arguments{
-\item{trait_name}{}
+\item{td}{an object of class "treedata", from the tidytree package. This contains both the tree and the continuous traits}
+
+\item{alpha}{the parameter controlling the rate of adaptation}
+
+\item{sigma2}{the instantaneous diffusion variance parameter}
+
+\item{theta}{the primary optimum}
+
+\item{trait_name}{a string indicating which column in \code{td} that should be used for the trait}
+}
+\value{
+the log likelihood
 }
 \description{
-Title
+Calculate the likelihood of an univariate OU process using the vcv method
 }
 \examples{
 

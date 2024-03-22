@@ -14,13 +14,10 @@ vcv.OU <- function(phy, sigma2, adpt.rate) {
   return(C)
 }
 
-#' Title
+#' Calculate the likelihood of an univariate OU process using the vcv method
 #'
-#' @param td
-#' @param sigma2
-#' @param trait_name
+#' @inherit logl_OU_fitzjohn
 #'
-#' @return
 #' @export
 #'
 #' @examples

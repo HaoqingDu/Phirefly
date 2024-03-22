@@ -8,17 +8,15 @@
 ## Likelihood calculation
 ## the result gives out the log-value of the likelihood
 
-#' Title
+#' Calculate the likelihood of a univariate BM process using the vcv method
 #'
-#' @param phy
-#' @param chr.values
-#' @param mu
-#' @param sigma2
+#' @inherit logl_OU_fitzjohn
 #'
-#' @return
 #' @export
 #'
 #' @examples
+#' data("artiodactyla")
+#' logl_BM_vcv(artiodactyla, 0.5, 0.5, "brain_mass_g_log_mean")
 logl_BM_vcv <- function(td, mu, sigma2, trait_name) {
   phy <- td@phylo
   ntip <- length(phy$tip.label)

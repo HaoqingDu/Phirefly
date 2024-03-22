@@ -2,13 +2,24 @@
 % Please edit documentation in R/BM_vcv.R
 \name{logl_BM_vcv}
 \alias{logl_BM_vcv}
-\title{Title}
+\title{Calculate the likelihood of a univariate BM process using the vcv method}
 \usage{
 logl_BM_vcv(td, mu, sigma2, trait_name)
 }
 \arguments{
-\item{sigma2}{}
+\item{td}{an object of class "treedata", from the tidytree package. This contains both the tree and the continuous traits}
+
+\item{sigma2}{the instantaneous diffusion variance parameter}
+
+\item{trait_name}{a string indicating which column in \code{td} that should be used for the trait}
+}
+\value{
+the log likelihood
 }
 \description{
-Title
+Calculate the likelihood of a univariate BM process using the vcv method
+}
+\examples{
+data("artiodactyla")
+logl_BM_vcv(artiodactyla, 0.5, 0.5, "brain_mass_g_log_mean")
 }
