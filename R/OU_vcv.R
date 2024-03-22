@@ -27,12 +27,12 @@ vcv.OU <- function(phy, sigma2, adpt.rate) {
 #'
 #' data("artiodactyla")
 #'
-#' logl_OU_vcv(artiodactyla, 0.1, 0.3, 5.0, "brain_mass_g_log_mean")
+#' logl_OU_vcv(artiodactyla, 0.5, 0.5, 5.04, "brain_mass_g_log_mean")
 logl_OU_vcv <- function(td, alpha, sigma2, theta, trait_name){
-  continuous_trait <- td@data[[trait_name]]
   tree <- td@phylo
-
   ntip <- length(tree$tip.label)
+  continuous_trait <- td@data[[trait_name]][1:ntip]
+
   mrca1 <- ape::mrca(tree) # get the ancestral node label for each pair of tips
   times <- ape::node.depth.edgelength(tree) # get time at each node from root
   ta <- matrix(times[mrca1], nrow=ntip, dimnames = list(tree$tip.label, tree$tip.label)) # get time of divergence for each pair of tips
