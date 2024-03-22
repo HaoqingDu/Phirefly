@@ -33,27 +33,9 @@ simple_ou_vcv <- function(tree, continuousChar, alpha, sigma2, theta){
 
   X = matrix(1, ntip)
 
-  C = chol(V) # upper triangular matrix
-  L = t(C) # lower triangular matrix
-  log_det_V = 0
-  for (i in 1:ntip){
-    log_det_V = log_det_V + log(L[i,i])
-  }
-  log_det_V = log_det_V *2.0 # equals to julia implementation to 12 sig. fig.
+  beta1 <- matrix(theta, 1,1)
 
-  y = NULL
-  for (species in tree$tip.label){
-    y[species] = as.numeric(continuousChar[species])
-  }
+  logl <- generalized_least_squares(V, X, continuousChar, beta1)
 
-  r = solve(L) %*% y - solve(L) %*% X * theta # what does de-correlated residuals mean?
-
-  # res = - (n/2) * log(2*pi) - 0.5 * log_det_V - 0.5 * dot(r, r)
-  #     = exp(-n/2)^(2*pi) * exp(-0.5)^det_V * exp(-0.5)^dot(r, r) ?
-  res = 0.0
-  res = res - 0.5 * ntip * log(2*pi)
-  res = res - 0.5 * log_det_V
-  res = res - 0.5 * dot(r, r) # what is r and what is  dot product of r?
-
-  return(res)
+  return(logl)
 }
