@@ -22,7 +22,7 @@ generalized_least_squares <- function(V, X, y, beta1){
 
   log_det_V <- 2*sum(log(diag(L)))
 
-  r = solve(L) %*% y - solve(L) %*% X %*% beta1 # what does de-correlated residuals mean?
+  r = backsolve(L, y) - backsolve(L, X %*% beta1) # what does de-correlated residuals mean?
 
   dot_r <- (t(r) %*% r)[1]
   logl = -0.5 * ntip * log(2*pi) -0.5 * log_det_V - 0.5 * dot_r
