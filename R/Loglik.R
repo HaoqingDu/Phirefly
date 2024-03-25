@@ -23,22 +23,35 @@
 #'
 #' @examples
 
-loglik <- function(td, trait.names,
+loglik <- function(td, trait_names,
                    mu, sig2,
                    model = C("BM", "OU"),
                    alpha = NULL) {
 
-  if(class(td@phylo) != "phylo") {stop(td," does not have a \" phylo \".")}
+  m <- model
 
-  ntaxa <- length(td@phylo$tip.labels)
-  chr.values <- td@data$trait.names
+  phy <- td@phylo
+  if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
-  C <- vcv.matrix(td,
-                  model = model,
+  ntaxa <- length(phy$tip.labels)
+  chr.values <- td@data$trait_names[1:ntaxa]
+
+  if(length(model) > 1) {
+    warning("Please specify the model! (\"BM\"/\"OU\")")
+    print("The given result is under the BM model")
+    model <- "BM"
+  }
+
+  V <- vcv.matrix(td,
+                  model = m,
                   alpha)
   v1 <- matrix(rep(1, ntaxa), ncol = 1)
+
+  # loglikelihood = -1/2 * (X - mu)^T (sigma2 C)^-1 (X - mu)
+  #                 -1/2 * n * log(2pi) _ 1/2 log(det(sigma2 C))
   log.likelihood <- -1/2 * t(chr.values-mu %x% v1) %*%
-    solve(sig2*C) %*% (chr.values-mu %x% v1) -
-    1/2*ntaxa*log(2*pi) - 1/2*det(sig2*C)
+    solve(sig2*V) %*% (chr.values-mu %x% v1) -
+    1/2*ntaxa*log(2*pi) - 1/2*det(sig2*V)
+
   return(as.numeric(log.likelihood))
   }
