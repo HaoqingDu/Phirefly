@@ -23,7 +23,7 @@
 #'
 #' @examples
 
-loglik <- function(td, trait_names,
+loglik_vcv <- function(td, trait_names,
                    mu, sig2,
                    model = C("BM", "OU"),
                    alpha = NULL) {
