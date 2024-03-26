@@ -1,9 +1,10 @@
 # Author: Haoqing Du
-# Latest Editing Time: 21/03/2024
+# Latest Editing Time: 26/03/2024
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
 ## - under the situation that (i) single trait; (ii) single sample per taxa.
+## - using vcv methods
 
 
 ## Likelihood calculation
