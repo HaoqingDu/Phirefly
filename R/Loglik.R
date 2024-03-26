@@ -28,19 +28,19 @@ loglik <- function(td, trait_names,
                    model = C("BM", "OU"),
                    alpha = NULL) {
 
-  m <- model
-
   phy <- td@phylo
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
-  ntaxa <- length(phy$tip.labels)
-  chr.values <- td@data$trait_names[1:ntaxa]
+  ntaxa <- length(phy$tip.label)
+  chr.values <- td@data[[trait_names]][1:ntaxa]
 
   if(length(model) > 1) {
     warning("Please specify the model! (\"BM\"/\"OU\")")
     print("The given result is under the BM model")
     model <- "BM"
   }
+
+  m <- model
 
   V <- vcv.matrix(td,
                   model = m,
