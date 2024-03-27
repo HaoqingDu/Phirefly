@@ -8,71 +8,55 @@
 
 
 ## pruning
-pruning <- function(td, trait_names, node_index) {
+pruning <- function(td, trait_names, sigma2, node_index) {
 
   phy <- td@phylo
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
-  offspring_node <- tree$edge[tree$edge[,1] == node.label,][,2]
-  if (sum(tree$edge[,1] ==offspring_node[1]) == 0) { # if left offspring node is a tip
-    edge_left <- tree$edge.length[which(tree$edge[,1] == node.label)[1]]
-    chr_left <- character.value[offspring_node[1],]
-    if (sum(tree$edge[,1] ==offspring_node[2] ) == 0) { # if right offspring node is a tip
-      edge_right <- tree$edge.length[which(tree$edge[,1] == node.label)[2]]
-      chr_right <- character.value[offspring_node[2],]
-      #footprint <<- c(footprint, node.label)
-      contrast <<- rbind(contrast, chr_left-chr_right)
-      edgelength <<- rbind(edgelength, c(edge_left, edge_right))
-      return(list(chr.values = rbind(chr_left, chr_right), edge = c(edge_left, edge_right)))
-    } else { # right offspring note is not a tip
-      recursive <- pruning2(character.value, tree, offspring_node[2])
-      edge_right <- tree$edge.length[which(tree$edge[,1] == node.label)[2]]+
-        prod(recursive$edge)/
-        sum(recursive$edge)
-      x_left <- recursive$chr.values[1,]
-      x_right <- recursive$chr.values[2,]
-      v_left <- recursive$edge[1]
-      v_right <- recursive$edge[2]
-      chr_right <- (x_left*v_right+x_right*v_left)/
-        (v_left+v_right)
-      contrast <<- rbind(contrast, chr_left-chr_right)
-      edgelength <<- rbind(edgelength, c(edge_left, edge_right))
-      #footprint <<- c(footprint, node.label)
-      return(list(chr.values = rbind(chr_left, chr_right), edge = c(edge_left, edge_right)))
-    }
-  } else { # if left offspring node is not a tip
-    recursive <- pruning2(character.value, tree, offspring_node[1])
-    edge_left <- tree$edge.length[which(tree$edge[,1] == node.label)[1]]+
-      prod(recursive$edge)/
-      sum(recursive$edge)
-    x_left <- recursive$chr.values[1,]
-    x_right <- recursive$chr.values[2,]
-    v_left <- recursive$edge[1]
-    v_right <- recursive$edge[2]
-    chr_left <- (x_left*v_right+x_right*v_left)/
-      (v_left+v_right)
-    if (sum(tree$edge[,1] ==offspring_node[2] ) == 0) { # if right offspring node is a tip
-      edge_right <- tree$edge.length[which(tree$edge[,1] == node.label)[2]]
-      chr_right <- character.value[offspring_node[2],]
-      contrast <<- rbind(contrast, chr_left-chr_right)
-      edgelength <<- rbind(edgelength, c(edge_left, edge_right))
-      #footprint <<- c(footprint, node.label)
-      return(list(chr.values = rbind(chr_left, chr_right), edge = c(edge_left, edge_right)))
-    } else { # right offspring note is not a tip
-      recursive <- pruning2(character.value, tree, offspring_node[2])
-      edge_right <- tree$edge.length[which(tree$edge[,1] == node.label)[2]]+
-        prod(recursive$edge)/
-        sum(recursive$edge)
-      x_left <- recursive$chr.values[1,]
-      x_right <- recursive$chr.values[2,]
-      v_left <- recursive$edge[1]
-      v_right <- recursive$edge[2]
-      chr_right <- (x_left*v_right+x_right*v_left)/
-        (v_left+v_right)
-      contrast <<- rbind(contrast, chr_left-chr_right)
-      edgelength <<- rbind(edgelength, c(edge_left, edge_right))
-      #footprint <<- c(footprint, node.label)
-      return(list(chr.values = rbind(chr_left, chr_right), edge = c(edge_left, edge_right)))
-    }
+  ntaxa <- length(phy$tip.label)
+  characters <- td@data[[trait_names]][1:ntaxa]
+  descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
+
+  if (descendants[1] <= ntaxa) { # if left descendant is a tip
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
+    chr_left <- characters[descendants[1],]
+    loglik_left <- 0
   }
+  else { # if left offspring node is not a tip
+    recursive <- pruning(td, trait_names, sigma2, descendants[1])
+
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
+      recursive$extended.edge
+    chr_left <- recursive$chr.values
+    loklik_left <- recursive$loglik
+  }
+
+  if (descendants[2] <= ntaxa) { # if right offspring node is a tip
+      edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
+      chr_right <- characters[descendants[2],]
+      loglik_right <- 0
+  }
+  else { # right offspring note is not a tip
+      recursive <- pruning(td, trait_names, sigma2, descendants[2])
+
+      edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]+
+        recursive$extended.edge
+      chr_right <- recursive$chr.values
+      loglik_right <- recursive$loglik
+  }
+
+  #extended branch length
+  extended.edge <- (edge_left * edge_right) / (edge_left + edge_right)
+
+  # character value for the node is the weighted average of two descendants
+  chr.values <- (edge_left*chr_right + edge_right*chr_left) / (edge_left + edge_right)
+
+  # log-likellihood = sum of left & right descendants' likelihood and the likelihood of itself
+  log.likelihood <- loglik_left + loglik_right
+  log.likelihood <- log.likelihood - 1/2 * log(2*pi*sigma2*(edge_left + edge_right)) -
+    1/2 * (chr_left - chr_right)^2 / (sigma2 * (edge_left + edge_right))
+
+  return(list(extended.edge = extended.edge,
+              chr.values = chr.values,
+              loglik = log.likelihood))
 }
