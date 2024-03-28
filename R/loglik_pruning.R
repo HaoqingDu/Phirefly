@@ -10,7 +10,7 @@
 ## pruning
 pruning <- function(td, trait_names, sigma2, node_index) {
 
-  # phy <- td@phylo
+  phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
@@ -19,7 +19,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
 
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
-    chr_left <- characters[descendants[1],]
+    chr_left <- characters[descendants[1]]
     loglik_left <- 0
   }
   else { # if left offspring node is not a tip
@@ -28,12 +28,12 @@ pruning <- function(td, trait_names, sigma2, node_index) {
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
       recursive$extended.edge
     chr_left <- recursive$chr.values
-    loklik_left <- recursive$loglik
+    loglik_left <- recursive$loglik
   }
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
       edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
-      chr_right <- characters[descendants[2],]
+      chr_right <- characters[descendants[2]]
       loglik_right <- 0
   }
   else { # right offspring note is not a tip
