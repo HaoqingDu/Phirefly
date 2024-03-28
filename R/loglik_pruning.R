@@ -1,5 +1,5 @@
 # Author: Haoqing Du
-# Latest Editing Time: 26/03/2024
+# Latest Editing Time: 28/03/2024
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
@@ -8,6 +8,17 @@
 
 
 ## pruning
+#' Title
+#'
+#' @param td
+#' @param trait_names
+#' @param sigma2
+#' @param node_index
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pruning <- function(td, trait_names, sigma2, node_index) {
 
   phy <- td@phylo
@@ -63,6 +74,17 @@ pruning <- function(td, trait_names, sigma2, node_index) {
 
 ## log likelihood printing
 
+#' Title
+#'
+#' @param td
+#' @param trait_names
+#' @param mu
+#' @param sigma2
+#'
+#' @return
+#' @export
+#'
+#' @examples
 loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
 
   phy <- td@phylo

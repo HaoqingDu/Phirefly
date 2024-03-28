@@ -2,6 +2,8 @@
 
 export(generalized_least_squares)
 export(logl_BM_fitzjohn)
-export(loglik)
+export(loglik_BM_prun)
+export(loglik_vcv)
 export(loglikelihood)
 export(make_descendants)
+export(pruning)

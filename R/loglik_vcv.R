@@ -46,13 +46,13 @@ loglik_vcv <- function(td, trait_names,
   V <- vcv.matrix(td,
                   model = m,
                   alpha)
-  v1 <- matrix(rep(1, ntaxa), ncol = 1)
+  v1 <- matrix(1, ntaxa, 1)
 
   # loglikelihood = -1/2 * (X - mu)^T (sigma2 C)^-1 (X - mu)
   #                 -1/2 * n * log(2pi) _ 1/2 log(det(sigma2 C))
-  log.likelihood <- -1/2 * t(chr.values-mu %x% v1) %*%
-    solve(sig2*V) %*% (chr.values-mu %x% v1) -
-    1/2*ntaxa*log(2*pi) - 1/2*det(sig2*V)
+  log.likelihood <- -1/2 * t(chr.values-mu * v1) %*%
+    solve(sig2*V) %*% (chr.values-mu * v1) -
+    1/2*ntaxa*log(2*pi) - 1/2*log(det(sig2*V))
 
   return(as.numeric(log.likelihood))
   }
