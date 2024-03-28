@@ -10,8 +10,8 @@
 ## pruning
 pruning <- function(td, trait_names, sigma2, node_index) {
 
-  phy <- td@phylo
-  if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
+  # phy <- td@phylo
+  # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
   characters <- td@data[[trait_names]][1:ntaxa]
@@ -59,4 +59,22 @@ pruning <- function(td, trait_names, sigma2, node_index) {
   return(list(extended.edge = extended.edge,
               chr.values = chr.values,
               loglik = log.likelihood))
+}
+
+## log likelihood printing
+
+loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
+
+  phy <- td@phylo
+  if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
+
+  ntaxa <- length(phy$tip.label)
+  characters <- td@data[[trait_names]][1:ntaxa]
+  root_index <- ntaxa + 1
+
+  root <- pruning(td, trait_names, sigma2, root_index)
+  log.likelihood <- root$loglik - 1/2 * log(2*pi*sigma2*root$extended.edge) -
+    1/2 * (root$chr.values - mu)^2 / (sigma2*root$extended.edge)
+
+  return(log.likelihood)
 }
