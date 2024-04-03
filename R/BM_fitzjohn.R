@@ -1,12 +1,8 @@
-## recursive or iterative?
-
-#' Title
+#' Calculate the likelihood of a univariate BM process using the FitzJohn algorithm
 #'
-#' @param td
-#' @param sigma2
-#' @param trait_name
+#' @inherit logl_OU_fitzjohn
 #'
-#' @return
+#' @param mu the parameter controlling the mean, or the ancestral value of the BM process
 #' @export
 #'
 #' @examples

@@ -10,7 +10,7 @@ Authors@R:
     )       
 Description: Implements likelihood functions for univariate Brownian motion and Ornstein Uhlenbeck models in comparative phylogenetic methods
 License: GPL-2
-Depends: ape, tidytree
+Depends: ape, tidytree, dplyr
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

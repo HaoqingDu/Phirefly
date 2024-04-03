@@ -6,18 +6,10 @@
 
 data("artiodactyla")
 
-sigma2 <- 0.1
-mu <- 5.0
-
-pruning_likelihood <- logl_BM_fitzjohn(artiodactyla, sigma2, mu, "brain_mass_g_log_mean")
-
-####################################
-##
-##  the vcv likelihood algorithm
-##
-####################################
-
-vcv_likelihood <- logl_BM_vcv(artiodactyla, mu, sigma2, "brain_mass_g_log_mean")
+sigma2 <- 0.5
+alpha <- 0.5
+theta <- 5.0
+pruning_likelihood <- logl_OU_fitzjohn(artiodactyla, alpha, sigma2, theta, "brain_mass_g_log_mean")
 
 ####################################
 ##
@@ -25,7 +17,15 @@ vcv_likelihood <- logl_BM_vcv(artiodactyla, mu, sigma2, "brain_mass_g_log_mean")
 ##
 ####################################
 
-test_that("BM vcv and pruning likelihoods are the same", {
+vcv_likelihood <- logl_OU_vcv(artiodactyla, alpha, sigma2, theta, "brain_mass_g_log_mean")
+
+####################################
+##
+##  the vcv likelihood algorithm
+##
+####################################
+
+test_that("OU vcv and pruning likelihoods are the same", {
   expect_equal(
     vcv_likelihood,
     pruning_likelihood
