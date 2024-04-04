@@ -25,12 +25,12 @@ pruning <- function(td, trait_names, sigma2, node_index) {
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
-  characters <- td@data[[trait_names]][1:ntaxa]
+  characters <- as.matrix(td@data[trait_names][1:ntaxa,])
   descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
 
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
-    chr_left <- characters[descendants[1]]
+    chr_left <- characters[descendants[1],]
     loglik_left <- 0
   }
   else { # if left offspring node is not a tip
@@ -44,7 +44,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
     edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
-    chr_right <- characters[descendants[2]]
+    chr_right <- characters[descendants[2],]
     loglik_right <- 0
   }
   else { # right offspring note is not a tip
@@ -91,12 +91,12 @@ loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
-  characters <- td@data[[trait_names]][1:ntaxa]
+  # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
   root <- pruning(td, trait_names, sigma2, root_index)
   log.likelihood <- root$loglik - 1/2 * log(2*pi*sigma2*root$extended.edge) -
     1/2 * (root$chr.values - mu)^2 / (sigma2*root$extended.edge)
 
-  return(log.likelihood)
+  return(sum(log.likelihood))
 }
