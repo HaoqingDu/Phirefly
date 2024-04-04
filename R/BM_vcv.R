@@ -21,11 +21,11 @@
 logl_BM_vcv <- function(td, mu, sigma2, trait_name) {
   phy <- td@phylo
   ntip <- length(phy$tip.label)
-  chr.values <- td@data[[trait_name]][1:ntip]
+  chr.values <- as.matrix(td@data[trait_name][1:ntip,])
 
   V <- BM_vcv(phy, sigma2)
   X <- matrix(1, ntip, 1)
-  beta1 <- matrix(mu, 1,1)
+  beta1 <- matrix(mu, 1)
 
   logl <- generalized_least_squares(V, X, chr.values, beta1)
   return(logl)
@@ -47,7 +47,7 @@ BM_vcv <- function(phy, sigma2) {
       }
     }
   }
-  V <- V * sigma2
+  V <- kronecker(sigma2, V)
   return(V)
 }
 
