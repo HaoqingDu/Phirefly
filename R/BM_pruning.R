@@ -3,7 +3,7 @@
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
-## - under the situation that (i) single trait; (ii) single sample per taxa.
+## - under the situation that (i) multiple independent traits; (ii) single sample per taxa.
 ## - using pruning methods
 
 
