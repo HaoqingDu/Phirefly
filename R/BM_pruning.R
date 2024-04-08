@@ -25,6 +25,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
+  nchr <- length(trait_names)
   characters <- as.matrix(td@data[trait_names][1:ntaxa,])
   descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
 
@@ -64,8 +65,13 @@ pruning <- function(td, trait_names, sigma2, node_index) {
 
   # log-likellihood = sum of left & right descendants' likelihood and the likelihood of itself
   log.likelihood <- loglik_left + loglik_right
-  log.likelihood <- log.likelihood - 1/2 * log(2*pi*sigma2*(edge_left + edge_right)) -
-    1/2 * (chr_left - chr_right)^2 / (sigma2 * (edge_left + edge_right))
+  log.likelihood <- log.likelihood - 1/2 * nchr * log(2*pi) -
+    1/2 * log(det(sigma2 * (edge_left + edge_right))) -
+    1/2 * t(chr_left - chr_right) %*% solve(sigma2 * (edge_left + edge_right)) %*% (chr_left - chr_right)
+
+  # log.likelihood <- log.likelihood - 1/2 * log(2*pi*sigma2*(edge_left + edge_right)) -
+  #   1/2 * (chr_left - chr_right)^2 / (sigma2 * (edge_left + edge_right))
+
 
   return(list(extended.edge = extended.edge,
               chr.values = chr.values,
@@ -91,12 +97,14 @@ loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
   ntaxa <- length(phy$tip.label)
+  nchr <- length(trait_names)
   # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
   root <- pruning(td, trait_names, sigma2, root_index)
-  log.likelihood <- root$loglik - 1/2 * log(2*pi*sigma2*root$extended.edge) -
-    1/2 * (root$chr.values - mu)^2 / (sigma2*root$extended.edge)
+  log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
+    1/2 * log(det(sigma2 * root$extended.edge)) -
+    1/2 * t(root$chr.values - mu) %*% solve(sigma2 * (root$extended.edge)) %*% (root$chr.values - mu)
 
-  return(sum(log.likelihood))
+  return(log.likelihood)
 }
