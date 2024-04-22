@@ -6,7 +6,7 @@
 ## - under the situation that (i) multiple independent traits; (ii) multi-samples per taxa.
 ## - using pruning methods
 
-pruning_multi <- function(td, trait_names, sigma2, tau2, nsamples, node_index) {
+pruning_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index) {
 
   phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
@@ -16,73 +16,84 @@ pruning_multi <- function(td, trait_names, sigma2, tau2, nsamples, node_index) {
   characters <- as.matrix(td@data[trait_names][1:ntaxa,])
   descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
 
+  # inv_sigma2 <- solve(sigma2)
+
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
-    v_left <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[1]] +
-      diag(tau2[descendants[1],], names = T)
-    # add extra variance
-    # do we need to think about covariance here? Or is it kind of redundancy?
+    edge_left <- matrix(phy$edge.length[phy$edge[,2] == descendants[1]], nchr, nchr) +
+      diag(tau[descendants[1],]/nsamples[descendants[1],], nchr, nchr, names = T)
+      # Assumption: within-species Variation only, no cov!
+    v_left <- sigma2 * edge_left
+
     chr_left <- characters[descendants[1],]
     # likelihood of sample mean
-    loglik_left <- sum(dnorm(characters[descendants[1],],
-                         mean = characters[descendants[1],],
-                         sd = tau2[descendants[1],]/nsamples[descendants[1],],
-                         log = T))
+    loglik_left <- - 1/2 * nchr * log(2*pi) -
+      1/2 * log(det(sigma2 * diag(tau2[descendants[1],], nchr, nchr, names = T)))
+    # - 1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # if left offspring node is not a tip
-    recursive <- pruning_multi(td, trait_names, sigma2, tau2, nsamples, descendants[1])
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
+      recursive$extended.edge
+    v_left <- sigma2 * edge_left
 
-    v_left <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[1]]+
-      recursive$variance
     chr_left <- recursive$chr.values
     loglik_left <- recursive$loglik
   }
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
-    v_right <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[2]] +
-      diag(tau2[descendants[2],], names = T)
-    # same for this epsilon
+    edge_right <- matrix(phy$edge.length[phy$edge[,2] == descendants[2]], nchr, nchr) +
+      diag(tau[descendants[2],]/nsamples[descendants[2],], nchr, nchr, names = T)
+    # Assumption: within-species Variation only, no cov!
+    v_right <- sigma2 * edge_right
+
     chr_right <- characters[descendants[2],]
     # likelihood of sample mean
-    loglik_right <- sum(dnorm(characters[descendants[2],],
-                             mean = characters[descendants[2],],
-                             sd = tau2[descendants[2],]/nsamples[descendants[2],],
-                             log = T))
+    loglik_right <- - 1/2 * nchr * log(2*pi) -
+      1/2 * log(det(sigma2 * diag(tau2[descendants[2],], nchr, nchr, names = T)))
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # right offspring note is not a tip
-    recursive <- pruning_multi(td, trait_names, sigma2, tau2, nsamples, descendants[2])
+    recursive <- pruning(td, trait_names, sigma2, descendants[2])
 
-    v_right <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[2]]+
-      recursive$variance
+    edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]+
+      recursive$extended.edge
+    v_right <- sigma2 * edge_right
+
     chr_right <- recursive$chr.values
     loglik_right <- recursive$loglik
   }
 
   #extended branch length and variance
-  v_node <- (v_left * v_right) / (v_left + v_right)
+  edge <- (edge_left * edge_right) / (edge_left + edge_right)
+  # print(v_left)
+  # print(v_right)
+  # v_node <- (v_left * v_right) / (v_left + v_right)
+  # print(v_node)
 
   # character value for the node is the weighted average of two descendants
   chr.values <- (v_left*chr_right + v_right*chr_left) / (v_left + v_right)
 
   # log-likellihood = sum of left & right descendants' likelihood and the likelihood of itself
   log.likelihood <- loglik_left + loglik_right
+
+  print(det(v_right + v_left))
+
   log.likelihood <- log.likelihood - 1/2 * nchr * log(2*pi) -
-    1/2 * log(det(v_right + v_left)) -
+    1/2 * log(det(v_left + v_right)) -
     1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
 
   # log.likelihood <- log.likelihood - 1/2 * log(2*pi*sigma2*(edge_left + edge_right)) -
   #   1/2 * (chr_left - chr_right)^2 / (sigma2 * (edge_left + edge_right))
 
 
-  return(list(variance = v_node,
+  return(list(extended.edge = edge,
               chr.values = chr.values,
               loglik = log.likelihood))
 }
 
 
 
-loglik_BM_multi <- function(td, trait_names, mu, sigma2, tau2, nsamples) {
+loglik_BM_multi <- function(td, trait_names, mu, sigma2, tau, nsamples) {
 
   phy <- td@phylo
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
@@ -92,10 +103,10 @@ loglik_BM_multi <- function(td, trait_names, mu, sigma2, tau2, nsamples) {
   # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
-  root <- pruning_multi(td, trait_names, sigma2, tau2, nsamples, root_index)
+  root <- pruning_multi(td, trait_names, sigma2, tau, nsamples, root_index)
   log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
-    1/2 * log(det(root$variance)) -
-    1/2 * t(root$chr.values - mu) %*% solve(root$variance) %*% (root$chr.values - mu)
+    1/2 * log(det(sigma2 * root$extended.edge)) -
+    1/2 * t(root$chr.values - mu) %*% solve(sigma2 * root$extended.edge) %*% (root$chr.values - mu)
 
   return(log.likelihood)
 }

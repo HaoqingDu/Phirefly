@@ -30,38 +30,44 @@ pruning <- function(td, trait_names, sigma2, node_index) {
   descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
 
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
-    v_left <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[1]]
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
+    v_left <- sigma2 * edge_left
     chr_left <- characters[descendants[1],]
     loglik_left <- 0
   }
   else { # if left offspring node is not a tip
     recursive <- pruning(td, trait_names, sigma2, descendants[1])
 
-    v_left <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[1]]+
-      recursive$variance
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
+      recursive$extended.edge
+    v_left <- sigma2 * edge_left
+
     chr_left <- recursive$chr.values
     loglik_left <- recursive$loglik
   }
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
-    v_right <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[2]]
+   edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
+  #  v_right <- sigma2 * edge_right
     chr_right <- characters[descendants[2],]
     loglik_right <- 0
   }
   else { # right offspring note is not a tip
     recursive <- pruning(td, trait_names, sigma2, descendants[2])
 
-    v_right <- sigma2 * phy$edge.length[phy$edge[,2] == descendants[2]]+
-      recursive$variance
+    edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]+
+      recursive$extended.edge
+    v_right <- sigma2 * edge_right
+
     chr_right <- recursive$chr.values
     loglik_right <- recursive$loglik
   }
 
   #extended branch length
-  v_node <- (v_left * v_right) / (v_left + v_right)
+  edge <- (edge_left * edge_right) / (edge_left + edge_right)
 
   # character value for the node is the weighted average of two descendants
-  chr.values <- (v_left*chr_right + v_right*chr_left) / (v_left + v_right)
+  chr.values <- (edge_left*chr_right + edge_right*chr_left) / (edge_left + edge_right)
 
   # log-likellihood = sum of left & right descendants' likelihood and the likelihood of itself
   log.likelihood <- loglik_left + loglik_right
@@ -73,7 +79,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
   #   1/2 * (chr_left - chr_right)^2 / (sigma2 * (edge_left + edge_right))
 
 
-  return(list(variance = v_node,
+  return(list(extended.edge = edge,
               chr.values = chr.values,
               loglik = log.likelihood))
 }
@@ -103,8 +109,8 @@ loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
 
   root <- pruning(td, trait_names, sigma2, root_index)
   log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
-    1/2 * log(det(root$variance)) -
-    1/2 * t(root$chr.values - mu) %*% solve(root$variance) %*% (root$chr.values - mu)
+    1/2 * log(det(sigma2 * root$extended.edge)) -
+    1/2 * t(root$chr.values - mu) %*% solve(sigma2 * root$extended.edge) %*% (root$chr.values - mu)
 
   return(log.likelihood)
 }
