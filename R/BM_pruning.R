@@ -19,7 +19,7 @@
 #' @export
 #'
 #' @examples
-pruning <- function(td, trait_names, sigma2, node_index) {
+pruning_BM <- function(td, trait_names, sigma2, node_index) {
 
   phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
@@ -36,7 +36,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
     loglik_left <- 0
   }
   else { # if left offspring node is not a tip
-    recursive <- pruning(td, trait_names, sigma2, descendants[1])
+    recursive <- pruning_BM(td, trait_names, sigma2, descendants[1])
 
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
       recursive$extended.edge
@@ -53,7 +53,7 @@ pruning <- function(td, trait_names, sigma2, node_index) {
     loglik_right <- 0
   }
   else { # right offspring note is not a tip
-    recursive <- pruning(td, trait_names, sigma2, descendants[2])
+    recursive <- pruning_BM(td, trait_names, sigma2, descendants[2])
 
     edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]+
       recursive$extended.edge
@@ -107,7 +107,7 @@ loglik_BM_prun <- function(td, trait_names, mu, sigma2) {
   # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
-  root <- pruning(td, trait_names, sigma2, root_index)
+  root <- pruning_BM(td, trait_names, sigma2, root_index)
   log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
     1/2 * log(det(sigma2 * root$extended.edge)) -
     1/2 * t(root$chr.values - mu) %*% solve(sigma2 * root$extended.edge) %*% (root$chr.values - mu)

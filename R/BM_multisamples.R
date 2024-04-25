@@ -1,12 +1,12 @@
 # Author: Haoqing Du
-# Latest Editing Time: 08/04/2024
+# Latest Editing Time: 24/04/2024
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
 ## - under the situation that (i) multiple independent traits; (ii) multi-samples per taxa.
 ## - using pruning methods
 
-pruning_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index) {
+pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index) {
 
   phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
@@ -32,6 +32,8 @@ pruning_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index) {
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # if left offspring node is not a tip
+    recursive <- pruning_BM_multi(td, trait_names, sigma2, tau, nsamples, descendants[1])
+
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]+
       recursive$extended.edge
     v_left <- sigma2 * edge_left
@@ -53,7 +55,7 @@ pruning_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index) {
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # right offspring note is not a tip
-    recursive <- pruning(td, trait_names, sigma2, descendants[2])
+    recursive <- pruning_BM_multi(td, trait_names, sigma2, tau, nsamples, descendants[2])
 
     edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]+
       recursive$extended.edge
@@ -103,7 +105,7 @@ loglik_BM_multi <- function(td, trait_names, mu, sigma2, tau, nsamples) {
   # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
-  root <- pruning_multi(td, trait_names, sigma2, tau, nsamples, root_index)
+  root <- pruning_BM_multi(td, trait_names, sigma2, tau, nsamples, root_index)
   log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
     1/2 * log(det(sigma2 * root$extended.edge)) -
     1/2 * t(root$chr.values - mu) %*% solve(sigma2 * root$extended.edge) %*% (root$chr.values - mu)
