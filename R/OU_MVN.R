@@ -3,7 +3,7 @@
 
 ## function is to calculate the likelihood:
 ## - with the Ornstein-Uhlenbeck Process
-## - under the situation that (i) single trait; (ii) multi-samples per taxa.
+## - under the situation that (i) multiple independent traits; (ii) multi-samples per taxa.
 ## - using pruning methods
 
 pruning_OU <- function(td, trait_names, sigma2, alpha, theta, node_index) {
@@ -27,7 +27,7 @@ pruning_OU <- function(td, trait_names, sigma2, alpha, theta, node_index) {
 
     edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
     v_left <- sigma2 / (2 * alpha) * expm1(2 * alpha * edge_left) +
-      recursive$Var * exp(2 * alpha * edge_left)
+      recursive$Var * exp(2.0 * alpha * bl_left)
 
     chr_left <- recursive$chr.values
     mean_left <- exp(alpha * edge_left) * (chr_left - theta) + theta
@@ -45,8 +45,8 @@ pruning_OU <- function(td, trait_names, sigma2, alpha, theta, node_index) {
     recursive <- pruning_OU(td, trait_names, sigma2, alpha, theta, descendants[2])
 
     edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
-    v_right <- sigma2 / (2 * alpha) * expm1(2 * alpha * edge_right) +
-      recursive$Var * exp(2 * alpha * edge_right)
+    v_right <- sigma2 / (2 * alpha) * expm1(2 * alpha * edge_left) +
+      recursive$Var * exp(2.0 * alpha * bl_left)
 
     chr_right <- recursive$chr.values
     mean_right <- exp(alpha * edge_right) * (chr_right - theta) + theta
@@ -58,14 +58,12 @@ pruning_OU <- function(td, trait_names, sigma2, alpha, theta, node_index) {
 
   # character values of the node
   chr_node <- (mean_left * v_right + mean_right * v_left) / (v_left + v_right)
-  #print(chr_node)
 
   # log-likelihood
   log.likelihood <- loglik_left + loglik_right
-  log.likelihood <- log.likelihood + alpha * (edge_left + edge_right)
-  log.likelihood <- log.likelihood - 1/2 * log(2*pi) -
-    1/2 * log(v_left + v_right) -
-    1/2 * (mean_left - mean_right)^2 / (v_left + v_right)
+  log.likelihood <- log.likelihood - 1/2 * nchr * log(2*pi) -
+    1/2 * log(det(v_left + v_right)) -
+    1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
 
   # output
   return(list(Var = var_node,
@@ -85,10 +83,9 @@ loglik_OU_prun <- function(td, trait_names, sigma2, alpha, theta) {
   root_index <- ntaxa + 1
 
   root <- pruning_OU(td, trait_names, sigma2, alpha, theta, root_index)
-
-  log.likelihood <- root$loglik - 1/2 * log(2*pi) -
-    1/2 * log(root$Var) -
-    1/2 * (root$chr.values - theta)^2 / (root$Var)
+  log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
+    1/2 * log(det(root$Var)) -
+    1/2 * t(root$chr.values - theta) %*% solve(root$var) %*% (root$chr.values - theta)
 
   return(log.likelihood)
 }
