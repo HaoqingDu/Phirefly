@@ -19,15 +19,16 @@ pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index)
   # inv_sigma2 <- solve(sigma2)
 
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
-    edge_left <- matrix(phy$edge.length[phy$edge[,2] == descendants[1]], nchr, nchr) +
-      diag(tau[descendants[1],]/nsamples[descendants[1],], nchr, nchr, names = T)
-      # Assumption: within-species Variation only, no cov!
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]] +
+      tau[descendants[1],]/nsamples[descendants[1],]
+    # edge_left <- matrix(phy$edge.length[phy$edge[,2] == descendants[1]], nchr, nchr) +
+    #   diag(tau[descendants[1],]/nsamples[descendants[1],], nchr, nchr, names = T)
     v_left <- sigma2 * edge_left
 
     chr_left <- characters[descendants[1],]
     # likelihood of sample mean
     loglik_left <- - 1/2 * nchr * log(2*pi) -
-      1/2 * log(det(sigma2 * diag(tau2[descendants[1],], nchr, nchr, names = T)))
+      1/2 * log(det(sigma2 * diag(tau[descendants[1],], nchr, nchr, names = T)))
     # - 1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
@@ -43,15 +44,16 @@ pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index)
   }
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
-    edge_right <- matrix(phy$edge.length[phy$edge[,2] == descendants[2]], nchr, nchr) +
-      diag(tau[descendants[2],]/nsamples[descendants[2],], nchr, nchr, names = T)
-    # Assumption: within-species Variation only, no cov!
+    edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]] +
+      tau[descendants[2],]/nsamples[descendants[2],]
+    # edge_right <- matrix(phy$edge.length[phy$edge[,2] == descendants[2]], nchr, nchr) +
+    #   diag(tau[descendants[2],]/nsamples[descendants[2],], nchr, nchr, names = T)
     v_right <- sigma2 * edge_right
 
     chr_right <- characters[descendants[2],]
     # likelihood of sample mean
     loglik_right <- - 1/2 * nchr * log(2*pi) -
-      1/2 * log(det(sigma2 * diag(tau2[descendants[2],], nchr, nchr, names = T)))
+      1/2 * log(det(sigma2 * diag(tau[descendants[2],], nchr, nchr, names = T)))
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # right offspring note is not a tip
@@ -73,12 +75,10 @@ pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index)
   # print(v_node)
 
   # character value for the node is the weighted average of two descendants
-  chr.values <- (v_left*chr_right + v_right*chr_left) / (v_left + v_right)
+  chr.values <- (edge_left*chr_right + edge_right*chr_left) / (edge_left + edge_right)
 
   # log-likellihood = sum of left & right descendants' likelihood and the likelihood of itself
   log.likelihood <- loglik_left + loglik_right
-
-  print(det(v_right + v_left))
 
   log.likelihood <- log.likelihood - 1/2 * nchr * log(2*pi) -
     1/2 * log(det(v_left + v_right)) -
