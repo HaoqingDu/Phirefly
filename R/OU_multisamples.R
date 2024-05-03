@@ -3,10 +3,10 @@
 
 ## function is to calculate the likelihood:
 ## - with the Ornstein-Uhlenbeck Process
-## - under the situation that (i) multiple traits; (ii) single sample per taxa.
+## - under the situation that (i) multiple traits; (ii) multi-samples per taxa.
 ## - using pruning methods
 
-pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, node_index) {
+pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, tau, nsamples, node_index) {
   phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
@@ -16,12 +16,14 @@ pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, node_index) {
   descendants <- phy$edge[phy$edge[,1] == node_index,][,2]
 
   if (descendants[1] <= ntaxa) { # if left descendant is a tip
-    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]]
+    edge_left <- phy$edge.length[phy$edge[,2] == descendants[1]] +
+      tau[descendants[1],]/nsamples[descendants[1],]
     t_left <- 1 / (2 * alpha) * expm1(2 * alpha * edge_left)
     v_left <- sigma2 * t_left
     chr_left <- characters[descendants[1],]
     mean_left <- exp(alpha * edge_left) * (chr_left - theta) + theta
-    loglik_left <- 0
+    loglik_left <- 1/2 * nchr * log(2*pi) -
+      1/2 * log(det(sigma2 * tau[descendants[1],]))
   }
   else { # if left offspring node is not a tip
     recursive <- pruning_OU_MVN(td, trait_names, sigma2, alpha, theta, descendants[1])
@@ -37,12 +39,14 @@ pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, node_index) {
   }
 
   if (descendants[2] <= ntaxa) { # if right offspring node is a tip
-    edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]]
+    edge_right <- phy$edge.length[phy$edge[,2] == descendants[2]] +
+      tau[descendants[2],]/nsamples[descendants[2],]
     t_right <- 1 / (2 * alpha) * expm1(2 * alpha * edge_right)
     v_right <- sigma2 * t_right
     chr_right <- characters[descendants[2],]
     mean_right <- exp(alpha * edge_right) * (chr_right - theta) + theta
-    loglik_right <- 0
+    loglik_right <- - 1/2 * nchr * log(2*pi) -
+      1/2 * log(det(sigma2 * tau[descendants[2],]))
   }
   else { # right offspring note is not a tip
     recursive <- pruning_OU_MVN(td, trait_names, sigma2, alpha, theta, descendants[2])

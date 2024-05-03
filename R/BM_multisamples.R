@@ -1,5 +1,5 @@
 # Author: Haoqing Du
-# Latest Editing Time: 24/04/2024
+# Latest Editing Time: 03/05/2024
 
 ## function is to calculate the likelihood:
 ## - with the Brownian Motion model
@@ -28,7 +28,8 @@ pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index)
     chr_left <- characters[descendants[1],]
     # likelihood of sample mean
     loglik_left <- - 1/2 * nchr * log(2*pi) -
-      1/2 * log(det(sigma2 * diag(tau[descendants[1],], nchr, nchr, names = T)))
+      1/2 * log(det(sigma2 * tau[descendants[1],]))
+    # 1/2 * log(det(sigma2 * diag(tau[descendants[1],], nchr, nchr, names = T)))
     # - 1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
@@ -53,7 +54,8 @@ pruning_BM_multi <- function(td, trait_names, sigma2, tau, nsamples, node_index)
     chr_right <- characters[descendants[2],]
     # likelihood of sample mean
     loglik_right <- - 1/2 * nchr * log(2*pi) -
-      1/2 * log(det(sigma2 * diag(tau[descendants[2],], nchr, nchr, names = T)))
+      1/2 * log(det(sigma2 * tau[descendants[2],]))
+    # 1/2 * log(det(sigma2 * diag(tau[descendants[2],], nchr, nchr, names = T)))
     # loglik_left <- sum(dnorm(sample, mean, sd ,log = T))
   }
   else { # right offspring note is not a tip
