@@ -68,7 +68,7 @@ pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, node_index) {
   log.likelihood <- loglik_left + loglik_right
   log.likelihood <- log.likelihood - 1/2 * nchr * log(2*pi) -
     1/2 * log(det(v_left + v_right)) -
-    1/2 * t(chr_left - chr_right) %*% solve(v_left + v_right) %*% (chr_left - chr_right)
+    1/2 * t(mean_left - mean_right) %*% solve(v_left + v_right) %*% (mean_left - mean_right)
 
   # output
   return(list(extended = t_node,
