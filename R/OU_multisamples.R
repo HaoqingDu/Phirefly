@@ -1,12 +1,12 @@
 # Author: Haoqing Du
-# Latest Editing Time: 03/05/2024
+# Latest Editing Time: 13/05/2024
 
 ## function is to calculate the likelihood:
 ## - with the Ornstein-Uhlenbeck Process
 ## - under the situation that (i) multiple traits; (ii) multi-samples per taxa.
 ## - using pruning methods
 
-pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, tau, nsamples, node_index) {
+pruning_OU_multi <- function(td, trait_names, sigma2, alpha, theta, tau, nsamples, node_index) {
   phy <- td@phylo
   # if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
 
@@ -82,7 +82,7 @@ pruning_OU_MVN <- function(td, trait_names, sigma2, alpha, theta, tau, nsamples,
 }
 
 
-loglik_OU_MVN <- function(td, trait_names, sigma2, alpha, theta) {
+loglik_OU_multi <- function(td, trait_names, sigma2, alpha, theta, tau, nsamples) {
 
   phy <- td@phylo
   if(class(phy) != "phylo") {stop(td," does not have a \" phylo \".")}
@@ -92,7 +92,7 @@ loglik_OU_MVN <- function(td, trait_names, sigma2, alpha, theta) {
   # characters <- td@data[[trait_names]][1:ntaxa]
   root_index <- ntaxa + 1
 
-  root <- pruning_OU_MVN(td, trait_names, sigma2, alpha, theta, root_index)
+  root <- pruning_OU_multi(td, trait_names, sigma2, alpha, theta, tau, nsamples, root_index)
   log.likelihood <- root$loglik - 1/2 * nchr * log(2*pi) -
     1/2 * log(det(root$Var)) -
     1/2 * t(root$chr.values - theta) %*% solve(root$Var) %*% (root$chr.values - theta)
