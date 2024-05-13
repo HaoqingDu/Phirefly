@@ -38,53 +38,7 @@ mcmc.chain <- function(LikelihoodFunction,
                        ) {
 
 
-  for (j in sample(1:length(para_vec))) { # randomize the order?
-    if (logTransforms[j]) {
-      if (para_vec[j] == 0) {
-        stop("cannot log-transform 0")
-      }
-      logvalue <- log(parameters[j]) # propose a new value for parameter[j]
-      logvalue_new <- logvalue + rnorm(1, 0, delta[j])
-      new_value <- exp(logvalue_new)
-      para_vec[j] <- new_value
 
-      new_prior     <- 0.0
-      for ( k in 1:length(parameters) ) {
-        new_prior <- new_prior + priors[[k]](parameters[k])
-      }
-      if ( is.finite(new_prior) ) {
-        new_lnl <- do.all(LikelihoodFunction(parameters))
-        new_pp <- new_lnl + new_prior
-      }
-
-      # accept / reject
-      if ( is.finite(new_pp) &&  new_pp-pp > log(runif(1,0,1)) ) {
-        pp <- new_pp
-        lnl <- new_lnl
-        ln_prior <- new_prior
-      }
-    } else { # logTransformes = F
-      value <- parameters[j] # propose a new value for parameter[j]
-      new_value <- value + rnorm(1,0,delta[j])
-      parameters[j] <- new_value
-
-      new_prior <- 0.0
-      for ( k in 1:length(parameters) ) {
-        new_prior <- new_prior + priors[[k]](parameters[k])
-      }
-      if ( is.finite(new_prior) ) {
-        new_lnl <- do.all(LikelihoodFunction(parameters))
-        new_pp <- new_lnl + new_prior
-      }
-
-      # accept / reject
-      if ( is.finite(new_pp) &&  new_pp-pp > log(runif(1,0,1)) ) {
-        pp <- new_pp
-        lnl <- new_lnl
-        ln_prior <- new_prior
-      }
-    }
-  }
 
   # output
   return(list(Parameters = parameters,
@@ -112,14 +66,23 @@ mcmc <- function(LikelihoodFunction,
   # preparation
   ntraits <- length(trait_names)
 
+  parameters_cp <- parameters
   if (is.matrix(parameters$sigma2)) {
-    parameters$sigma2 <- from.matrix.to.vector(parameters$sigma2)
+    parameters_cp$sigma2 <- from.matrix.to.vector(parameters$sigma2)
   }
 
-  para_vec <- unlist(parameters)
+  npara <- c()
+
+  for (m in 1:length(parameters_cp)) {
+    npara <- c(npara, parameters_cp[[m]])
+  }
+
+  para_names <- names(parameters)
+
+  para_vec <- unlist(parameters_cp)
 
   # sample list to save parameter values
-  chain <- array(dim = c(ceiling(iterations/thining), length(parameters)+2))
+  chain <- array(dim = c(ceiling(iterations/thining), length(para_vec)+2))
 
   # pre-compute current posterior probability
   lnl <- do.call(LikelihoodFunction(td, trait_names, parameters)) # do.call
@@ -143,11 +106,11 @@ mcmc <- function(LikelihoodFunction,
   }
 
   for (i in 1:(burnin+iterations)) {
+
     if (print.info) {
       if ( i <= burnin ) {
         setTxtProgressBar(bar,i/burnin)
       } else if (i == (burnin+1) ) {
-        cat("\nFinished burnin period!\n\n")
         cat("Running the chain ...\n")
         cat("0--------25--------50--------75--------100\n")
         bar <- txtProgressBar(style=1,width=42)
@@ -155,7 +118,56 @@ mcmc <- function(LikelihoodFunction,
         setTxtProgressBar(bar,(i-burnin)/iterations)
       }
     }
+
+    for (j in sample(1:length(para_vec))) { # randomize the order?
+      if (logTransforms[j]) {
+        if (para_vec[j] == 0) {
+          stop("cannot log-transform 0")
+        }
+        logvalue <- log(parameters[j]) # propose a new value for parameter[j]
+        logvalue_new <- logvalue + rnorm(1, 0, delta[j])
+        new_value <- exp(logvalue_new)
+        para_vec[j] <- new_value
+
+        new_prior     <- 0.0
+        for ( k in 1:length(parameters) ) {
+          new_prior <- new_prior + priors[[k]](para_vec[k])
+        }
+        if ( is.finite(new_prior) ) {
+          # convert back to parameters
+          new_lnl <- do.call(LikelihoodFunction(td, trait_names, parameters))
+          new_pp <- new_lnl + new_prior
+        }
+
+        # accept / reject
+        if ( is.finite(new_pp) &&  new_pp-pp > log(runif(1,0,1)) ) {
+          pp <- new_pp
+          lnl <- new_lnl
+          ln_prior <- new_prior
+        }
+      } else { # logTransformes = F
+        value <- parameters[j] # propose a new value for parameter[j]
+        new_value <- value + rnorm(1,0,delta[j])
+        parameters[j] <- new_value
+
+        new_prior <- 0.0
+        for ( k in 1:length(parameters) ) {
+          new_prior <- new_prior + priors[[k]](parameters[k])
+        }
+        if ( is.finite(new_prior) ) {
+          new_lnl <- do.call(td, trait_names, LikelihoodFunction(parameters))
+          new_pp <- new_lnl + new_prior
+        }
+
+        # accept / reject
+        if ( is.finite(new_pp) &&  new_pp-pp > log(runif(1,0,1)) ) {
+          pp <- new_pp
+          lnl <- new_lnl
+          ln_prior <- new_prior
+        }
+      }
     }
+  }
 
 
 
