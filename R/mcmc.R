@@ -28,29 +28,6 @@ from.vector.to.matrix <- function(vec) {
 }
 
 # mcmc
-mcmc.chain <- function(LikelihoodFunction,
-                       td,
-                       trait_names,
-                       priors, # prior probability distribution function, returns log prior probbility
-                       parameters, # a list containing all the parameters
-                       logTransforms,
-                       delta # a vector of step lengths
-                       ) {
-
-
-
-
-  # output
-  return(list(Parameters = parameters,
-              log.prior = ln_prior,
-              log.lokelihood = lnl))
-}
-
-
-
-
-
-
 mcmc <- function(LikelihoodFunction,
                  priors, # prior probability distribution function, returns log prior probbility
                  parameters,
@@ -68,14 +45,14 @@ mcmc <- function(LikelihoodFunction,
 
   parameters_cp <- parameters
   if (is.matrix(parameters$sigma2)) {
-    parameters_cp$sigma2 <- from.matrix.to.vector(parameters$sigma2)
+    parameters_cp$sigma2 <- from.matrix.to.vector(parameters_cp$sigma2)
   }
 
   npara <- c()
-
   for (m in 1:length(parameters_cp)) {
     npara <- c(npara, parameters_cp[[m]])
   }
+  para_index <- rep(seq_along(npara), times = npara)
 
   para_names <- names(parameters)
 
@@ -94,7 +71,7 @@ mcmc <- function(LikelihoodFunction,
 
 
 
-  ## burn-in
+  # burn-in
   if (burnin > 0) {
     if (print.info) {
       cat("Start burn-in")
@@ -124,17 +101,20 @@ mcmc <- function(LikelihoodFunction,
         if (para_vec[j] == 0) {
           stop("cannot log-transform 0")
         }
-        logvalue <- log(parameters[j]) # propose a new value for parameter[j]
+        value <- para_vec[j]
+        logvalue <- log(value) # propose a new value for parameter[j]
         logvalue_new <- logvalue + rnorm(1, 0, delta[j])
         new_value <- exp(logvalue_new)
         para_vec[j] <- new_value
 
         new_prior     <- 0.0
-        for ( k in 1:length(parameters) ) {
+        for ( k in 1:length(para_vec) ) {
           new_prior <- new_prior + priors[[k]](para_vec[k])
         }
         if ( is.finite(new_prior) ) {
-          # convert back to parameters
+          parameters_cp <- split(para_vec, para_index)
+          names(parameters_cp) <- para_names
+          parameters$sigma2 <- from.vector.to.matrix(parameters_cp$sigma2)
           new_lnl <- do.call(LikelihoodFunction(td, trait_names, parameters))
           new_pp <- new_lnl + new_prior
         }
@@ -144,17 +124,24 @@ mcmc <- function(LikelihoodFunction,
           pp <- new_pp
           lnl <- new_lnl
           ln_prior <- new_prior
+        } else {
+          para_vec[j] <- value
         }
+
+
       } else { # logTransformes = F
-        value <- parameters[j] # propose a new value for parameter[j]
+        value <- para_vec[j] # propose a new value for parameter[j]
         new_value <- value + rnorm(1,0,delta[j])
-        parameters[j] <- new_value
+        para_vec[j] <- new_value
 
         new_prior <- 0.0
-        for ( k in 1:length(parameters) ) {
-          new_prior <- new_prior + priors[[k]](parameters[k])
+        for ( k in 1:length(para_vec) ) {
+          new_prior <- new_prior + priors[[k]](para_vec[k])
         }
         if ( is.finite(new_prior) ) {
+          parameters_cp <- split(para_vec, para_index)
+          names(parameters_cp) <- para_names
+          parameters$sigma2 <- from.vector.to.matrix(parameters_cp$sigma2)
           new_lnl <- do.call(td, trait_names, LikelihoodFunction(parameters))
           new_pp <- new_lnl + new_prior
         }
@@ -164,11 +151,31 @@ mcmc <- function(LikelihoodFunction,
           pp <- new_pp
           lnl <- new_lnl
           ln_prior <- new_prior
+        } else {
+          para_vec[j] <- value
         }
+      }
+    }
+
+    # sample the parameter
+    if (i >= burnin) {
+      if ( (i-burnin) %% thinning == 0 ) {
+        chain[(i-burnin)/thinning+1,] <- c(lnl, ln_prior, para_vec)
       }
     }
   }
 
+  if ( is.null(names(priors)) ) {
+    names(priors) <- 1:length(priors)
+  }
 
+  chain <- as.mcmc(chain)
+  varnames(chain) <- c("likelihood","prior",names(priors))
+
+  if ( print.info ) {
+    cat("\nFinished MCMC!\n")
+  }
+
+  return(chain) #return a mcmc object, used by coda to plot
 
 }
